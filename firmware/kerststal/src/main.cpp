@@ -14,9 +14,17 @@
 #include "esp_err.h"
 
 #include "Hardware.hpp"
+#include "Animation.hpp"
+#include "AnimationStarColors.hpp"
+
+AnimationStarColors animationStarColors();
+
+Animator<10, 5> animatorInRest;
 
 void setup() {
     Hardware::getInstance()->setup();
+
+    animatorInRest.addAnimationEvent(0, (Animation*) &animationStarColors, START);
 }
 
 // linksom: 300 -> (stil) 610 => rechtsom 900
@@ -24,7 +32,6 @@ uint32_t c = 0;
 uint8_t state = 0;
 unsigned long ts;
 uint8_t a, b, d;
-
 
 void loop() {
   Hardware *hw = Hardware::getInstance();

@@ -46,7 +46,7 @@ public:
     uint8_t setup () {
         // Onboard blue led
         gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
-        digitalWrite(GPIO_NUM_4, LOW);
+        digitalWrite(GPIO_NUM_4, HIGH);
 
         // Movement sensor to detect human movement
         // https://www.otronic.nl/nl/pir-sensor-hc-sr501-bewegingssensor.html

@@ -21,9 +21,10 @@ class AnimationLightSlowOn: public Animation {
 private:
     unsigned int timestamp;
     uint8_t a;
+    uint8_t brightness;
 
 public:
-    AnimationLightSlowOn () { }
+    AnimationLightSlowOn (uint8_t brightness): brightness(brightness) { }
 
     void pre (unsigned long timestamp) {
         this->timestamp = timestamp;
@@ -31,12 +32,12 @@ public:
     }
     
     void loop (unsigned long timestamp) {
-        if ( timestamp - this->timestamp > 100 ) {
+        if ( timestamp - this->timestamp > 50 ) {
             this->timestamp = timestamp;
 
-            if ( a != 255 ) {
-                Hardware::getInstance()->setLightLeft(RgbColor(a, a, a));
-                Hardware::getInstance()->setLightRight(RgbColor(a, a, a));
+            if ( this->a != this->brightness ) {
+                Hardware::getInstance()->setLightLeft(RgbColor(this->a, this->a, this->a));
+                Hardware::getInstance()->setLightRight(RgbColor(this->a, this->a, this->a));
                 Hardware::getInstance()->stripShow();
                 this->a++;
             }

@@ -18,90 +18,52 @@
 #include "AnimationStarColors.hpp"
 #include "AnimationStarColorsFlicker.hpp"
 #include "AnimationLightSlowOn.hpp"
+#include "AnimationLightFlicker.hpp"
 
 AnimationStarColors animationStarColors;
 AnimationStarColorsFlicker animationStarsColorsFlicker;
-AnimationLightSlowOn animationLightSlowOn;
+AnimationLightSlowOn animationLightSlowOn(128);
+AnimationLightFlicker animationLightFlicker;
 
 Animator<5, 1> animatorInRest;
-Animator<10, 5> animatorMain;
+Animator<3, 1> animatorMain;
 
 void setup() {
     Hardware::getInstance()->setup();
     animatorInRest.addAnimationEvent(0, (Animation*) &animationStarColors, START);
     animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarColors, STOP);
-    animatorInRest.addAnimationEvent(10000, (Animation*) &animationStarsColorsFlicker, START);
-    animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarsColorsFlicker, STOP);
-    animatorInRest.addAnimationEvent(20000, (Animation*) NULL, RESTART);
+    animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarsColorsFlicker, START);
+    animatorInRest.addAnimationEvent(100000, (Animation*) &animationStarsColorsFlicker, STOP);
+    animatorInRest.addAnimationEvent(100000, (Animation*) NULL, RESTART);
 
     animatorMain.addAnimationEvent(0, (Animation*) &animationLightSlowOn, START);
+    animatorMain.addAnimationEvent(10000, (Animation*) &animationLightSlowOn, STOP);
+    animatorMain.addAnimationEvent(10000, (Animation*) &animationLightFlicker, START);
 }
 
-// linksom: 300 -> (stil) 610 => rechtsom 900
-uint32_t c = 0;
 uint8_t state = 0;
-unsigned long ts;
-uint8_t a, b, d;
-
+unsigned long ts = 0;
 void loop() {
   Hardware *hw = Hardware::getInstance();
 
-  Serial.printf("State %d\n", state);
+  //Serial.printf("State %d\n", state);
 
   if ( state == 0 ) {
     animatorInRest.loop(millis());
     if ( hw->isMovementDetected() ) {
       state = 1;
+      ts = millis()/1000; // Init the timestamp
     }
 
   } else if ( state == 1 ) {
-    ts = millis() / 1000;
-    state = 3;
-    c = 10;
+    animatorMain.loop(millis());
 
-  } else if ( state == 3 ) {
-    hw->setLightLeft(RgbColor(c, c, c));
-    hw->setLightRight(RgbColor(c, c, c));
-    hw->setLightStar(RgbColor(c, c, c));
-    hw->stripShow();
-    delay(20);
-    c++;
-    if ( c == 255 ) {
-      state = 4;
-    }
-
-  } else if ( state == 4 ) {
-    hw->setLightLeft(RgbColor(c, c, c));
-    hw->setLightRight(RgbColor(c, c, c));
-    //hw->setLightStar(RgbColor(c, c, c));
-    hw->stripShow();
-    delay(20);
-    c--;
-    if ( c == 100 ) {
-      state = 5;
-    }
     if ( millis()/1000 - ts > 10 ) { // After one minute not movement, shut down.
       state = 0;
     }
-    if ( hw->isMovementDetected() ) {
-      ts = millis() / 1000; // Restart timer!
-    }
 
-  } else if ( state == 5 ) {
-    hw->setLightLeft(RgbColor(c, c, c));
-    hw->setLightRight(RgbColor(c, c, c));
-    //setLightStar(RgbColor(c, c, c));
-    hw->stripShow();
-    delay(20);
-    c++;
-    if ( c == 255 ) {
-      state = 4;
-    }
-    if ( millis()/1000 - ts > 10 ) { // After one minute not movement, shut down.
-      state = 0;
-    }
     if ( hw->isMovementDetected() ) {
       ts = millis() / 1000; // Restart timer!
     }
-  }
+  } 
 }

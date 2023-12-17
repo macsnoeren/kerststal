@@ -1,23 +1,3 @@
-/*
-Wat is een animatie?
-Een animatie zijn opeenvolgende gebeurtenissen, waarbij het tijdstip waarop gebeurtenissen
-plaats kunnen vinden anders kunnen zijn.
-
-
-Ontwerp?
-Een idee kan zijn om een gebeurtenis op een bepaalde tijd te laten plaats vinden.
-tijd => Status
-
-Deze status kan ook een animatie zijn, bijvoorbeeld knipperen. Dus dan wordt het
-tijd => Animatie
-
-Daarnaast kunnen er eventueel ook meerdere Animaties geactiveerd worden, dan krijg je
-tijd => [Animaties]
-
-
-Animator classe bevat een volledige animatie seria wanneer welke animatie start. Meerdere animatie kunnen starten tegelijk.
-
-*/
 #pragma once
 /**
  * @file       : Animation.hpp
@@ -147,14 +127,17 @@ public:
                 if ( this->events[i].action == START ) {
                     this->events[i].animation->pre(timestamp);
                     this->addActiveAnimation(this->events[i].animation);
+                    Serial.printf("Add active animation %d.\n", i);
                 
                 } else if ( this->events[i].action == STOP ) {
                     this->events[i].animation->post(timestamp);
                     this->delActiveAnimation(this->events[i].animation);
+                    Serial.printf("Del active animation %d.\n", i);
 
                 } else if ( this->events[i].action == RESTART ) {
                     this->startTimestamp = timestamp;
                     this->prevTimestamp = timestamp;
+                    Serial.printf("Restart active animation %d.\n", i);
                 }
             }
         }

@@ -1,6 +1,6 @@
 #pragma once
 /**
- * @file       : AnimationStarColors.hpp
+ * @file       : AnimationLightSlowOn.hpp
  * @description: 
  * @date       : 
  * @author     : Maurice Snoeren (MS)
@@ -17,29 +17,29 @@
 #include <Animation.hpp>
 
 // Abstract Animation class used to implement specific animations.
-class AnimationStarColors: public Animation {
+class AnimationLightSlowOn: public Animation {
 private:
     unsigned int timestamp;
-    uint8_t a, b, c;
+    uint8_t a;
 
 public:
-    AnimationStarColors () { }
+    AnimationLightSlowOn () { }
 
     void pre (unsigned long timestamp) {
         this->timestamp = timestamp;
         this->a = 0;
-        this->b = 50;
-        this->c = 100;
     }
     
     void loop (unsigned long timestamp) {
         if ( timestamp - this->timestamp > 100 ) {
             this->timestamp = timestamp;
-            this->a = this->a + random(1, 5);
-            this->b = this->b + random(1, 5);
-            this->c = this->c + random(1, 5);
-            Hardware::getInstance()->setLightStar(RgbColor(this->a, this->b, this->c));
-            Hardware::getInstance()->stripShow();
+
+            if ( a != 255 ) {
+                Hardware::getInstance()->setLightLeft(RgbColor(a, a, a));
+                Hardware::getInstance()->setLightRight(RgbColor(a, a, a));
+                Hardware::getInstance()->stripShow();
+                this->a++;
+            }
         }
     }   
 

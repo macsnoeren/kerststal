@@ -17,20 +17,24 @@
 #include "Animation.hpp"
 #include "AnimationStarColors.hpp"
 #include "AnimationStarColorsFlicker.hpp"
+#include "AnimationLightSlowOn.hpp"
 
 AnimationStarColors animationStarColors;
 AnimationStarColorsFlicker animationStarsColorsFlicker;
+AnimationLightSlowOn animationLightSlowOn;
 
-Animator<10, 5> animatorInRest;
+Animator<5, 1> animatorInRest;
+Animator<10, 5> animatorMain;
 
 void setup() {
     Hardware::getInstance()->setup();
-
     animatorInRest.addAnimationEvent(0, (Animation*) &animationStarColors, START);
-    animatorInRest.addAnimationEvent(10000, (Animation*) &animationStarsColorsFlicker, START);
     animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarColors, STOP);
+    animatorInRest.addAnimationEvent(10000, (Animation*) &animationStarsColorsFlicker, START);
     animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarsColorsFlicker, STOP);
-    animatorInRest.addAnimationEvent(2000, (Animation*) NULL, RESTART);
+    animatorInRest.addAnimationEvent(20000, (Animation*) NULL, RESTART);
+
+    animatorMain.addAnimationEvent(0, (Animation*) &animationLightSlowOn, START);
 }
 
 // linksom: 300 -> (stil) 610 => rechtsom 900

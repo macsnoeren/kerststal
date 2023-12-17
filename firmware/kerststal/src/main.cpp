@@ -16,8 +16,10 @@
 #include "Hardware.hpp"
 #include "Animation.hpp"
 #include "AnimationStarColors.hpp"
+#include "AnimationStarColorsFlicker.hpp"
 
-AnimationStarColors animationStarColors();
+AnimationStarColors animationStarColors;
+AnimationStarColorsFlicker animationStarsColorsFlicker;
 
 Animator<10, 5> animatorInRest;
 
@@ -25,6 +27,10 @@ void setup() {
     Hardware::getInstance()->setup();
 
     animatorInRest.addAnimationEvent(0, (Animation*) &animationStarColors, START);
+    animatorInRest.addAnimationEvent(10000, (Animation*) &animationStarsColorsFlicker, START);
+    animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarColors, STOP);
+    animatorInRest.addAnimationEvent(20000, (Animation*) &animationStarsColorsFlicker, STOP);
+    animatorInRest.addAnimationEvent(2000, (Animation*) NULL, RESTART);
 }
 
 // linksom: 300 -> (stil) 610 => rechtsom 900
@@ -39,27 +45,12 @@ void loop() {
   Serial.printf("State %d\n", state);
 
   if ( state == 0 ) {
-    hw->setLightLeft(RgbColor(0, 0, 0));
-    hw->setLightRight(RgbColor(0, 0, 0));
-    hw->setLightStar(RgbColor(0, 0, 0));
-    hw->stripShow();
-    state = 1;
-    a = 0;
-    b = 50;
-    d = 100;
-
-  } else if ( state == 1) {
-    a = a + random(1, 5);
-    b = b + random(1, 5);
-    d = d + random(1, 5);
-    hw->setLightStar(RgbColor(a, b, d));
-    hw->stripShow();
-    delay(100);
+    animatorInRest.loop(millis());
     if ( hw->isMovementDetected() ) {
-      state = 2;
+      state = 1;
     }
 
-  } else if ( state == 2 ) {
+  } else if ( state == 1 ) {
     ts = millis() / 1000;
     state = 3;
     c = 10;

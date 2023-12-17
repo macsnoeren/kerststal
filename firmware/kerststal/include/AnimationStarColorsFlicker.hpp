@@ -1,6 +1,6 @@
 #pragma once
 /**
- * @file       : AnimationStarColors.hpp
+ * @file       : AnimationStarColorsFlicker.hpp
  * @description: 
  * @date       : 
  * @author     : Maurice Snoeren (MS)
@@ -17,13 +17,13 @@
 #include <Animation.hpp>
 
 // Abstract Animation class used to implement specific animations.
-class AnimationStarColors: public Animation {
+class AnimationStarColorsFlicker: public Animation {
 private:
     unsigned int timestamp;
     uint8_t a, b, c;
 
 public:
-    AnimationStarColors () { }
+    AnimationStarColorsFlicker () { }
 
     void pre (unsigned long timestamp) {
         this->timestamp = timestamp;
@@ -35,10 +35,14 @@ public:
     void loop (unsigned long timestamp) {
         if ( timestamp - this->timestamp > 100 ) {
             this->timestamp = timestamp;
-            this->a = this->a + random(1, 5);
-            this->b = this->b + random(1, 5);
-            this->c = this->c + random(1, 5);
-            Hardware::getInstance()->setLightStar(RgbColor(this->a, this->b, this->c));
+            a = a + random(1, 5);
+            b = b + random(1, 5);
+            c = c + random(1, 5);
+            Hardware::getInstance()->setLightStar(RgbColor(a, b, c));
+
+            if ( random(1,10) == 5 ) { // One of the ten we will flicker the light.
+                Hardware::getInstance()->setLight(random(1,8), RgbColor(255, 255, 255));
+            }
             Hardware::getInstance()->stripShow();
         }
     }   

@@ -180,6 +180,10 @@ public:
      setServo(LEDC_CHANNEL_5, degree);
     }
 
+    void setLight(uint16_t index, RgbColor light) {
+         strip.SetPixelColor(index, light);
+    }
+
     void setLight(RgbColor light[HARDWARE_PIXEL_COUNT]) {
         for ( uint8_t i=0; i < HARDWARE_PIXEL_COUNT; i++ ) {
             strip.SetPixelColor(i, light[i]);

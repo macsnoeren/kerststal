@@ -39,9 +39,9 @@ class Animation {
 public:
     Animation () { }
 
-    virtual void pre () = 0;
+    virtual void pre (unsigned long timestamp) = 0;
     virtual void loop (unsigned long timestamp) = 0;
-    virtual void post () = 0;
+    virtual void post (unsigned long timestamp) = 0;
 };
 
 enum AnimationAction {
@@ -63,10 +63,11 @@ private:
     uint8_t totalEvents;
     uint8_t totalActiveAnimation;
 
+    unsigned int startTimestamp;
     unsigned int prevTimestamp;
 
 public:
-    Animator (): totalEvents(0), totalActiveAnimation(0), prevTimestamp(0) {
+    Animator (): totalEvents(0), totalActiveAnimation(0), startTimestamp(0), prevTimestamp(0) {
         // Initialize the events
         for (uint8_t i=0; i < TOTAL_EVENTS; i++ ) {
             AnimationEvent* event = &this->events[i];
@@ -113,7 +114,7 @@ public:
 
         for (uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
             temp[i] = NULL; // Initialize in between
-            if ( activeAnimations[i] != NULL && activeAnimations[i] != animation ) {
+            if ( activeAnimations[i] != NULL && activeAnimations[i] != aninmation ) {
                 temp[counter] = activeAnimations[i];
                 counter++;        
             }
@@ -126,20 +127,34 @@ public:
     }
 
     void loop (unsigned long timestamp) {
+        if ( this->startTimestamp == 0 ) {
+            this->startTimestamp = timestamp;
+            this->prevTimestamp = timestamp;
+        }
+
         // Run the active animations
         for ( uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
             if ( this->activeAnimations[i] != NULL ) {
-                this->activeAnimations[i].loop();
+                this->activeAnimations[i]->loop(timestamp);
             }
         }
 
         // Check if it is required to change animation
         for ( uint8_t i=0; i < TOTAL_EVENTS; i++ ) {
-            if ( this->events[i].timestamp >= this->prevTimestamp && 
-                 this->events[i].timestamp < timestamp) {
+            if ( this->events[i].timestamp + this->startTimestamp >= this->prevTimestamp && 
+                 this->events[i].timestamp + this->startTimestamp < timestamp) {
                 // Execute event, timestamp is found!
                 if ( this->events[i].action == START ) {
+                    this->events[i].animation->pre(timestamp);
+                    this->addActiveAnimation(this->events[i].animation);
+                
+                } else if ( this->events[i].action == STOP ) {
+                    this->events[i].animation->post(timestamp);
+                    this->delActiveAnimation(this->events[i].animation);
 
+                } else if ( this->events[i].action == RESTART ) {
+                    this->startTimestamp = timestamp;
+                    this->prevTimestamp = timestamp;
                 }
             }
         }

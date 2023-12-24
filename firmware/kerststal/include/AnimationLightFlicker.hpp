@@ -24,7 +24,7 @@ private:
     uint8_t ledNumber;
 
 public:
-    AnimationLightFlicker () { }
+    AnimationLightFlicker (uint8_t brightness): brightness(brightness) { }
 
     void pre (unsigned long timestamp) {
         this->timestamp = timestamp;
@@ -34,17 +34,27 @@ public:
     
     void loop (unsigned long timestamp) {
         if ( timestamp - this->timestamp > 100 ) {
-            this->timestamp = timestamp;
             Hardware::getInstance()->setLight(this->ledNumber, RgbColor(this->brightness, this->brightness, this->brightness));
             if ( random(1,10) == 5 ) { // One of the ten we will flicker the light.
                 this->ledNumber = random(0, 16);
                 Hardware::getInstance()->setLight(this->ledNumber, RgbColor(255, 255, 255));
+                //Serial.printf("Flicker: %d\n", this->ledNumber);
             }
+            Hardware::getInstance()->stripShow();
+            this->timestamp = timestamp;
         }
     }   
 
     void post (unsigned long timestamp) {
-
+        Hardware::getInstance()->setLightLeft(RgbColor(0, 0, 0));
+        Hardware::getInstance()->setLightRight(RgbColor(0, 0, 0));
+        Hardware::getInstance()->setLightStar(RgbColor(0, 0, 0));
+        Hardware::getInstance()->stripShow();
     }
+
+    void printName () {
+        Serial.print("AnimationLightFlicker");
+    }
+
 };
 

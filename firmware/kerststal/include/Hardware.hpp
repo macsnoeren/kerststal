@@ -1,10 +1,13 @@
 #pragma once
 /**
  * @file       : Hardware.h
- * @description: Hardware singleton to control the hardware.
- * @date       : 16-12-2023
+ * @description: Hardware singleton to control the hardware. Based on the LolinS2 (S2 mini).
+ *               Microcontroller: https://www.wemos.cc/en/latest/s2/s2_mini.html
+ *               Movement sensor: https://www.otronic.nl/nl/pir-sensor-hc-sr501-bewegingssensor.html
+ * 
+ * @date       : 20-12-2023
  * @author     : Maurice Snoeren (MS)
- * @version    : 0.1 (beta)
+ * @version    : 1.0
  * @license    : GNU version 3.0
  * @todo       : 
  * @updates    :
@@ -17,22 +20,26 @@
 #include <driver/ledc.h>
 #include <esp_err.h>
 
+/* Three Neo pixel lights are used with each eight leds. */
 #define HARDWARE_PIXEL_COUNT 8*3
+
+/* The data pin of the Neo pixel is connected to 16. */
 #define HARDWARE_PIXEL_PIN   GPIO_NUM_16
 
+/* Enumeration to make the control of the Neo pixel easier. */
 enum HardwareLightStrip {
     RIGHT_01, RIGHT_02, RIGHT_03, RIGHT_04, RIGHT_05, RIGHT_06, RIGHT_07, RIGHT_08,
     LEFT_01, LEFT_02, LEFT_03, LEFT_04, LEFT_05, LEFT_06, LEFT_07, LEFT_08,
     STAR_01, STAR_02, STAR_03, STAR_04, STAR_05, STAR_06, STAR_07, STAR_08,
 };
 
+/* Singleton Hardware class*/
 class Hardware {
 private:
-    // three element pixels, in different order and speeds
     NeoPixelBus<NeoGrbFeature, NeoWs2812xMethod> strip;
 
 protected:
-    /* Protected constructor in order to create a singleton class. */
+    /* Protected constructor in order to create a singleton class. Initialize the class members. */
     Hardware(): strip(HARDWARE_PIXEL_COUNT, HARDWARE_PIXEL_PIN) {
     }
 
@@ -43,10 +50,16 @@ public:
         return &_temp;
     }
 
+    /* Setup the hardware. */
     uint8_t setup () {
         // Onboard blue led
-        gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
-        digitalWrite(GPIO_NUM_4, HIGH);
+        gpio_set_direction(GPIO_NUM_15, GPIO_MODE_OUTPUT);
+        this->setLed(false);
+        delay(2000);
+        this->setLed(true);
+        delay(2000);
+        this->setLed(false);
+        
 
         // Movement sensor to detect human movement
         // https://www.otronic.nl/nl/pir-sensor-hc-sr501-bewegingssensor.html
@@ -151,7 +164,7 @@ public:
     // -180 -> 180
     void setServo(ledc_channel_t channel, int16_t degree) {
         uint32_t duty = (degree + 180)*620/360 + 300; 
-        Serial.printf("duty: %lu\n", duty); 
+        //Serial.printf("duty: %lu\n", duty); 
         ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, channel, duty));
         ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, channel));
     }
@@ -208,12 +221,20 @@ public:
         }
     }
 
+    void setLed (bool on) {
+        digitalWrite(GPIO_NUM_15, (on ? HIGH : LOW));
+    }
+
     bool isMovementDetected () {
         return digitalRead(GPIO_NUM_8) == HIGH;
     }
 
     void stripShow () {
         this->strip.Show();
+    }
+
+    void loop (unsigned long timestamp) {
+        this->setLed(isMovementDetected());
     }
 
 };

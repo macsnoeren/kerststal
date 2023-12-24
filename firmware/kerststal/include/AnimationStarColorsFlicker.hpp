@@ -21,9 +21,10 @@ class AnimationStarColorsFlicker: public Animation {
 private:
     unsigned int timestamp;
     uint8_t a, b, c;
+    uint16_t speed;
 
 public:
-    AnimationStarColorsFlicker () { }
+    AnimationStarColorsFlicker (uint16_t speed=100): speed(speed) { }
 
     void pre (unsigned long timestamp) {
         this->timestamp = timestamp;
@@ -33,7 +34,7 @@ public:
     }
     
     void loop (unsigned long timestamp) {
-        if ( timestamp - this->timestamp > 100 ) {
+        if ( timestamp - this->timestamp > this->speed ) {
             this->timestamp = timestamp;
             a = a + random(1, 5);
             b = b + random(1, 5);
@@ -43,7 +44,7 @@ public:
             if ( random(1,10) == 5 ) { // One of the ten we will flicker the light.
                 uint8_t ledNumber = random(0,8)+16;
                 Hardware::getInstance()->setLight(ledNumber, RgbColor(255, 255, 255));
-                Serial.printf("Flicker: %d!!\n", ledNumber);
+                //Serial.printf("Flicker: %d!!\n", ledNumber);
             }
             Hardware::getInstance()->stripShow();
         }
@@ -52,5 +53,10 @@ public:
     void post (unsigned long timestamp) {
 
     }
+
+    void printName () {
+        Serial.print("AnimationStarColorsFlicker");
+    }
+
 };
 

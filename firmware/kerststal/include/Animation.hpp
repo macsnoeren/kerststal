@@ -22,6 +22,7 @@ public:
     virtual void pre (unsigned long timestamp) = 0;
     virtual void loop (unsigned long timestamp) = 0;
     virtual void post (unsigned long timestamp) = 0;
+    virtual void printName () = 0;
 };
 
 enum AnimationAction {
@@ -78,31 +79,58 @@ public:
     }
 
     uint8_t addActiveAnimation (Animation* animation) {
-        if ( this->totalActiveAnimation < SIMULTANOUS_ANIMATIONS ) {
-            this->activeAnimations[this->totalActiveAnimation] = animation;
-        } else {
-            Serial.print("addActiveAnimation: Could not add animation due to limited memory!\n");
-            return 1;
+        bool animationFound = false;
+        for ( uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
+            if ( this->activeAnimations[i] == animation ) {
+                animationFound = true;
+                Serial.printf("addActiveAnimation: Animation already found on position %d.\n", i);
+            }
+        }
+
+        if ( !animationFound ) {
+            if ( this->totalActiveAnimation < SIMULTANOUS_ANIMATIONS ) {
+                this->activeAnimations[this->totalActiveAnimation] = animation;
+                this->totalActiveAnimation++;
+                Serial.printf("Added active animation (%d): ", this->totalActiveAnimation);
+                animation->printName(); Serial.print("\n");
+
+            } else {
+                Serial.print("addActiveAnimation: Could not add animation due to limited memory!\n");
+                return 1;
+            }
         }
 
         return 0;
     }
 
     void delActiveAnimation (Animation* aninmation) {
-        Animation* temp[SIMULTANOUS_ANIMATIONS];
-        uint8_t counter = 0;
-
-        for (uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
-            temp[i] = NULL; // Initialize in between
-            if ( activeAnimations[i] != NULL && activeAnimations[i] != aninmation ) {
-                temp[counter] = activeAnimations[i];
-                counter++;        
+        bool animationFound = false;
+        for ( uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
+            if ( this->activeAnimations[i] == aninmation ) {
+                animationFound = true;
+                Serial.printf("Animation found on position %d to delete\n", i);
             }
         }
 
-        // Copy the result to the active Animations array
-        for (uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
-            activeAnimations[i] = temp[i];
+        if ( animationFound ) {
+            Animation* temp[SIMULTANOUS_ANIMATIONS];
+            uint8_t counter = 0;
+
+            for (uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
+                temp[i] = NULL; // Initialize in between
+                if ( this->activeAnimations[i] != NULL && this->activeAnimations[i] != aninmation ) {
+                    temp[counter] = activeAnimations[i];
+                    counter++;        
+                }
+            }
+
+            // Copy the result to the active Animations array
+            for (uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
+                activeAnimations[i] = temp[i];
+            }
+            this->totalActiveAnimation--;
+            Serial.printf("Deleted active animation (%d): ", this->totalActiveAnimation);
+            aninmation->printName(); Serial.print("\n");
         }
     }
 
@@ -110,12 +138,14 @@ public:
         if ( this->startTimestamp == 0 ) {
             this->startTimestamp = timestamp;
             this->prevTimestamp = timestamp;
+            Serial.print("Starting a fresh new animation\n");
         }
 
         // Run the active animations
         for ( uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++ ) {
             if ( this->activeAnimations[i] != NULL ) {
                 this->activeAnimations[i]->loop(timestamp);
+                //Serial.printf("Loop animation: %d\n", i);
             }
         }
 
@@ -135,14 +165,24 @@ public:
                     Serial.printf("Del active animation %d.\n", i);
 
                 } else if ( this->events[i].action == RESTART ) {
-                    this->startTimestamp = timestamp;
-                    this->prevTimestamp = timestamp;
+                    this->restart();
                     Serial.printf("Restart active animation %d.\n", i);
                 }
             }
         }
 
         this->prevTimestamp = timestamp; 
+    }
+
+    void restart () {
+        this->startTimestamp = 0;
+        this->totalActiveAnimation = 0;
+        for (uint8_t i=0; i < SIMULTANOUS_ANIMATIONS; i++) {
+            if ( this->activeAnimations[i] != NULL ) { // Required to do a post of all active animations!
+                this->activeAnimations[i]->post(millis());
+            }
+            this->activeAnimations[i] = NULL;
+        }
     }
 
 };

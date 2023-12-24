@@ -1,6 +1,6 @@
 #pragma once
 /**
- * @file       : AnimationStarColors.hpp
+ * @file       : AnimationStarGlow.hpp
  * @description: 
  * @date       : 
  * @author     : Maurice Snoeren (MS)
@@ -17,30 +17,29 @@
 #include <Animation.hpp>
 
 // Abstract Animation class used to implement specific animations.
-class AnimationStarColors: public Animation {
+class AnimationStarGlow: public Animation {
 private:
     unsigned int timestamp;
-    uint8_t a, b, c;
-    uint16_t speed;
+    int8_t v;
+    uint8_t a;
 
 public:
-    AnimationStarColors (uint16_t speed=100): speed(speed) { }
+    AnimationStarGlow () { }
 
     void pre (unsigned long timestamp) {
         this->timestamp = timestamp;
-        this->a = 0;
-        this->b = 50;
-        this->c = 100;
+        this->v = -1;
+        this->a = 255;
     }
     
     void loop (unsigned long timestamp) {
-        if ( timestamp - this->timestamp > this->speed ) {
-            this->timestamp = timestamp;
-            this->a = this->a + random(1, 5);
-            this->b = this->b + random(1, 5);
-            this->c = this->c + random(1, 5);
-            Hardware::getInstance()->setLightStar(RgbColor(this->a, this->b, this->c));
+        if ( timestamp - this->timestamp > 10 ) {
+            Hardware::getInstance()->setLightStar(RgbColor(a, a, a));
             Hardware::getInstance()->stripShow();
+            this->a = this->a + this->v;
+            if ( this->a < 10 ) { this->v = 1; }
+            if ( this->a == 255 ) { this->v = -1; }
+            this->timestamp = timestamp;
         }
     }   
 
@@ -49,7 +48,7 @@ public:
     }
 
     void printName () {
-        Serial.print("AnimationStarsColors");
+        Serial.print("AnimationStarColorsFlicker");
     }
 
 };

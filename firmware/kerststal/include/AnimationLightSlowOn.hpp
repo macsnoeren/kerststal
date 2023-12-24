@@ -27,6 +27,11 @@ public:
     AnimationLightSlowOn (uint8_t brightness): brightness(brightness) { }
 
     void pre (unsigned long timestamp) {
+        Hardware::getInstance()->setLightLeft(RgbColor(0, 0, 0));
+        Hardware::getInstance()->setLightRight(RgbColor(0, 0, 0));
+        Hardware::getInstance()->setLightStar(RgbColor(0, 0, 0));
+        Hardware::getInstance()->stripShow();
+
         this->timestamp = timestamp;
         this->a = 0;
     }
@@ -38,6 +43,7 @@ public:
             if ( this->a != this->brightness ) {
                 Hardware::getInstance()->setLightLeft(RgbColor(this->a, this->a, this->a));
                 Hardware::getInstance()->setLightRight(RgbColor(this->a, this->a, this->a));
+                Hardware::getInstance()->setLightStar(RgbColor(this->a, this->a, this->a));
                 Hardware::getInstance()->stripShow();
                 this->a++;
             }
@@ -45,7 +51,12 @@ public:
     }   
 
     void post (unsigned long timestamp) {
-
+        
     }
+
+    void printName () {
+        Serial.print("AnimationLightSlowOn");
+    }
+
 };
 
